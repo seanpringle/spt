@@ -140,7 +140,7 @@ func testScene() Scene {
 }
 
 func TestLocal(t *testing.T) {
-	Render("test.png", testScene(), []Renderer{LocalRenderer{}})
+	Render("test.png", testScene(), []Renderer{NewLocalRenderer()})
 }
 
 func TestRPC(t *testing.T) {
@@ -154,7 +154,7 @@ func TestRPC(t *testing.T) {
 	}()
 
 	time.Sleep(time.Second)
-	Render("test.png", testScene(), []Renderer{RPCRenderer{"127.0.0.1:34242"}})
+	Render("test.png", testScene(), []Renderer{NewRPCRenderer("127.0.0.1:34242")})
 
 	close(stop)
 	group.Wait()

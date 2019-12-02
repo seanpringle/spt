@@ -70,8 +70,16 @@ func (r LocalRenderer) Render(scene Scene) (Raster, error) {
 	return raster, nil
 }
 
+func NewLocalRenderer() Renderer {
+	return LocalRenderer{}
+}
+
 type RPCRenderer struct {
 	addr string
+}
+
+func NewRPCRenderer(address string) Renderer {
+	return RPCRenderer{address}
 }
 
 func (r RPCRenderer) Render(scene Scene) (Raster, error) {
