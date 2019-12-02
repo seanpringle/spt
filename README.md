@@ -11,3 +11,5 @@ It seems pretty quick, at least in the ballpark of other similar efforts. The cl
 A shout-out to the author [pt](https://github.com/fogleman/pt) is deserved. Very useful to have a Go-based reference implementation of a path tracer for debugging.
 
 See [spt_test.go](spt_test.go) for this example:
+
+![shapes.png](https://raw.githubusercontent.com/wiki/seanpringle/spt/shapes.png)
