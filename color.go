@@ -36,6 +36,10 @@ func (c Color) RGBA() (uint32, uint32, uint32, uint32) {
 	return r, g, b, 0xffff
 }
 
+func RGB(r, g, b uint8) Color {
+	return Color{float64(r) * 255, float64(g) * 255, float64(b) * 255}
+}
+
 func Hex(x int) Color {
 	r := float64((x>>16)&0xff) / 255
 	g := float64((x>>8)&0xff) / 255

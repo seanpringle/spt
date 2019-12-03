@@ -13,6 +13,14 @@ func init() {
 	gob.Register(Dielectric{})
 }
 
+var (
+	Steel     = Metal(Color{0.4, 0.4, 0.4}, 0.95)
+	Stainless = Metal(Color{0.4, 0.4, 0.4}, 0.3)
+	Gold      = Metal(Color{0.93, 0.78, 0.31}, 0.0)
+	Copper    = Metal(Color{0.68, 0.45, 0.41}, 0.8)
+	Brass     = Metal(Color{0.80, 0.58, 0.45}, 0.9)
+)
+
 // choose a vec3 less than unit
 func pickVec3(rnd Random) Vec3 {
 	for {

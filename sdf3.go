@@ -251,7 +251,8 @@ type SDFRepeat struct {
 func (s SDFRepeat) SDF() func(Vec3) float64 {
 	sdf := s.SDF3.SDF()
 	return func(pos Vec3) float64 {
-		return sdf(sub3(mod3(pos, s.Step), scale3(s.Step, 0.5)))
+		hstep := scale3(s.Step, 0.5)
+		return sdf(sub3(mod3(add3(pos, hstep), s.Step), hstep))
 	}
 }
 

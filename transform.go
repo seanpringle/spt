@@ -199,12 +199,21 @@ type SDFUnion struct {
 
 func (s SDFUnion) SDF() func(Vec3) float64 {
 	var items []func(Vec3) float64
+	var spheres []sphere
 	for _, item := range s.Items {
 		items = append(items, item.SDF())
+		c, r := item.Sphere()
+		spheres = append(spheres, sphere{c, r})
 	}
 	return func(pos Vec3) float64 {
 		var dist float64
 		for i, sdf := range items {
+			if i > 0 {
+				bd := spheres[i].distance(pos)
+				if bd > dist {
+					continue
+				}
+			}
 			d := sdf(pos)
 			if i == 0 || d < dist {
 				dist = d
@@ -229,12 +238,21 @@ type SDFDifference struct {
 
 func (s SDFDifference) SDF() func(Vec3) float64 {
 	var items []func(Vec3) float64
+	var spheres []sphere
 	for _, item := range s.Items {
 		items = append(items, item.SDF())
+		c, r := item.Sphere()
+		spheres = append(spheres, sphere{c, r})
 	}
 	return func(pos Vec3) float64 {
 		var dist float64
 		for i, sdf := range items {
+			if i > 0 {
+				bd := spheres[i].distance(pos)
+				if -bd < dist {
+					continue
+				}
+			}
 			d := sdf(pos)
 			if i == 0 {
 				dist = d
@@ -261,12 +279,21 @@ type SDFIntersection struct {
 
 func (s SDFIntersection) SDF() func(Vec3) float64 {
 	var items []func(Vec3) float64
+	var spheres []sphere
 	for _, item := range s.Items {
 		items = append(items, item.SDF())
+		c, r := item.Sphere()
+		spheres = append(spheres, sphere{c, r})
 	}
 	return func(pos Vec3) float64 {
 		var dist float64
 		for i, sdf := range items {
+			if i > 0 {
+				bd := spheres[i].distance(pos)
+				if bd > dist {
+					continue
+				}
+			}
 			d := sdf(pos)
 			if i == 0 || d > dist {
 				dist = d

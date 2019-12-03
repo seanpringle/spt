@@ -38,5 +38,5 @@ func (o *Thing) Sphere() (Vec3, float64) {
 }
 
 func (o *Thing) BoundingDistance(pos Vec3) float64 {
-	return pos.Sub(o.center).Length() - o.radius
+	return (sphere{o.center, o.radius}).distance(pos)
 }

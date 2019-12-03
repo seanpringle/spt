@@ -16,6 +16,10 @@ type Renderer interface {
 
 func Render(out string, scene Scene, renderers []Renderer) {
 
+	if len(renderers) == 0 {
+		renderers = []Renderer{NewLocalRenderer()}
+	}
+
 	rasters := make(chan Raster, len(renderers))
 	jobs := make(chan struct{}, len(renderers)*2)
 	ready := make(chan Renderer, len(renderers))
@@ -84,16 +88,16 @@ func NewRPCRenderer(address string) Renderer {
 
 func (r RPCRenderer) Render(scene Scene) (Raster, error) {
 
-	slave, err := rpc.Dial("tcp", r.addr)
-	if err != nil {
-		return nil, err
-	}
-	defer slave.Close()
+	var (
+		slave  *rpc.Client
+		raster Raster
+		err    error
+	)
 
-	var res Raster
-	if err := slave.Call("RenderRPC.Render", scene, &res); err != nil {
-		return nil, err
+	if slave, err = rpc.Dial("tcp", r.addr); err == nil {
+		defer slave.Close()
+		err = slave.Call("RenderRPC.Render", scene, &raster)
 	}
 
-	return res, nil
+	return raster, err
 }
