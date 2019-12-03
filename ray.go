@@ -32,7 +32,7 @@ func (r Ray) PathTrace(scene *Scene, depth int, bypass *Thing) Color {
 			}
 
 			if depth == 0 {
-				color = color.Mul(White.Add(scene.Ambient))
+				color = color.Add(scene.Ambient)
 			}
 		}
 
