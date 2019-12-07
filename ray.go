@@ -19,31 +19,23 @@ type Hit struct {
 func (r Ray) PathTrace(scene *Scene, depth int, bypass *Thing) Color {
 
 	if thing, hit := r.march(scene, bypass); thing != nil {
-		color := Black
+		color := Nought
 
 		if depth < scene.Bounces {
 
 			if shadow, attenuation, does := thing.Material().Scatter(r, thing, hit); does {
-				color = attenuation.Mul(shadow.PathTrace(scene, depth+1, thing))
+				color = color.Add(attenuation.Mul(shadow.PathTrace(scene, depth+1, thing)))
 			}
 
 			if light, is := thing.Material().Light(); is {
 				color = color.Add(light)
-			}
-
-			if depth == 0 {
-				color = color.Add(scene.Ambient)
 			}
 		}
 
 		return color
 	}
 
-	if scene.Sky != Black {
-		return scene.Sky.Scale(1.0 / float64(depth+1))
-	}
-
-	return Black
+	return scene.Ambient
 }
 
 // ray marching by sphere tracing

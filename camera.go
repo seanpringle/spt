@@ -14,7 +14,7 @@ type Camera struct {
 	Aperture float64
 }
 
-func NewCamera(lookFrom Vec3, lookAt Vec3, vup Vec3, vfov float64, focus Vec3, aperture float64) Camera {
+func NewCamera(lookFrom, lookAt, vup Vec3, vfov float64, focus Vec3, aperture float64) Camera {
 	c := Camera{}
 	c.Origin = lookFrom
 	c.W = lookAt.Sub(lookFrom).Unit()

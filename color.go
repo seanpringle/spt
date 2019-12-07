@@ -9,8 +9,12 @@ type Color struct {
 }
 
 var (
-	White = Color{1.0, 1.0, 1.0}
-	Black = Color{}
+	White  = Color{1.0, 1.0, 1.0}
+	Black  = Color{0.001, 0.001, 0.001}
+	Nought = Color{}
+	Red    = Color{1.0, 0.0, 0.0}
+	Blue   = Color{0.0, 0.0, 1.0}
+	Green  = Color{0.0, 1.0, 0.0}
 )
 
 func (c Color) Scale(t float64) Color {

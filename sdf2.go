@@ -12,6 +12,7 @@ func init() {
 	gob.Register(SDFRectangle{})
 	gob.Register(SDFTriangle{})
 	gob.Register(SDFPolygon{})
+	gob.Register(SDFStadium{})
 	//	gob.Register(SDFTrapezoid{})
 }
 
@@ -119,6 +120,34 @@ func (s SDFPolygon) Circle() (Vec2, float64) {
 
 func Polygon(n int, r float64) SDF2 {
 	return SDFPolygon{n, r}
+}
+
+type SDFStadium struct {
+	H, R1, R2 float64
+}
+
+func (s SDFStadium) SDF() func(Vec2) float64 {
+	return func(p Vec2) float64 {
+		p.X = abs(p.X)
+		b := (s.R1 - s.R2) / s.H
+		a := sqrt(1.0 - b*b)
+		k := dot2(p, V2(-b, a))
+		if k < 0.0 {
+			return len2(p) - s.R1
+		}
+		if k > a*s.H {
+			return len2(sub2(p, V2(0.0, s.H))) - s.R2
+		}
+		return dot2(p, V2(a, b)) - s.R1
+	}
+}
+
+func (s SDFStadium) Circle() (Vec2, float64) {
+	return Zero2, s.H + s.R1 + s.R2
+}
+
+func Stadium(h, r1, r2 float64) SDF2 {
+	return SDFStadium{h, r1, r2}
 }
 
 /*

@@ -1,6 +1,9 @@
 package spt
 
 import (
+	"bytes"
+	"compress/flate"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"net"
@@ -63,9 +66,15 @@ func RenderServeRPC(stop chan struct{}, port int) error {
 
 type RenderRPC struct{}
 
-func (srv RenderRPC) Render(in Scene, out *Raster) error {
+func (srv RenderRPC) Render(in Scene, out *CompressedRaster) error {
 	start := time.Now()
-	*out = in.Render()
+	raster := in.Render()
 	log.Println("rpc-server frame", time.Since(start))
+
+	def := new(bytes.Buffer)
+	fw, _ := flate.NewWriter(def, flate.BestCompression)
+	binary.Write(fw, binary.LittleEndian, raster)
+	fw.Close()
+	out.Buf = def.Bytes()
 	return nil
 }

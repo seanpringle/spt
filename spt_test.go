@@ -116,15 +116,15 @@ func testScene() Scene {
 	}
 
 	return Scene{
-		Width:     1280,
-		Height:    720,
-		Passes:    10,
-		Samples:   10,
-		Bounces:   4,
-		Horizon:   100000,
-		Threshold: 0.0001,
-		Ambient:   Black,
-		Sky:       White.Scale(0.05),
+		Width:      1280,
+		Height:     720,
+		Passes:     10,
+		Samples:    1,
+		Bounces:    4,
+		Horizon:    100000,
+		Threshold:  0.0001,
+		Ambient:    White.Scale(0.05),
+		Background: Transparent,
 
 		Camera: NewCamera(
 			V3(0, -8000, 8000),

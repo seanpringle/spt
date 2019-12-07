@@ -7,15 +7,15 @@ import (
 func partRender(part Thing) {
 
 	scene := Scene{
-		Width:     1280,
-		Height:    720,
-		Passes:    10,
-		Samples:   1,
-		Bounces:   4,
-		Horizon:   10000,
-		Threshold: 0.0001,
-		Ambient:   Black,
-		Sky:       White.Scale(0.05),
+		Width:      1280,
+		Height:     720,
+		Passes:     10,
+		Samples:    1,
+		Bounces:    4,
+		Horizon:    10000,
+		Threshold:  0.0001,
+		Ambient:    White.Scale(0.05),
+		Background: Transparent,
 
 		Camera: NewCamera(
 			V3(0, -2000, 2000),

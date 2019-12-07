@@ -4,7 +4,6 @@ package spt
 
 import (
 	"encoding/gob"
-	"log"
 	"math"
 )
 
@@ -17,6 +16,7 @@ func init() {
 	gob.Register(SDFCone{})
 	gob.Register(SDFRounded{})
 	gob.Register(SDFHollow{})
+	gob.Register(SDFElongate{})
 	gob.Register(SDFRepeat{})
 }
 
@@ -118,8 +118,17 @@ func Cube(x, y, z float64) SDF3 {
 	return SDFCube{x / 2, y / 2, z / 2}
 }
 
+func CubeR(x, y, z, r float64) SDF3 {
+	d := r * 2
+	return Round(r, Cube(x-d, y-d, z-d))
+}
+
 func Cylinder(h, r float64) SDF3 {
 	return Extrude(h, Circle(r))
+}
+
+func CylinderR(h, r, ro float64) SDF3 {
+	return Round(ro, Cylinder(h-ro*2, r-ro))
 }
 
 type SDFTorus struct {
@@ -218,7 +227,7 @@ func (s SDFHollow) Sphere() (Vec3, float64) {
 }
 
 func Hollow(thickness float64, sdf SDF3) SDF3 {
-	return Scale(1.0-thickness, SDFHollow{thickness / 2, sdf})
+	return SDFHollow{thickness, sdf}
 }
 
 type SDFElongate struct {
@@ -235,11 +244,10 @@ func (s SDFElongate) SDF() func(Vec3) float64 {
 
 func (s SDFElongate) Sphere() (Vec3, float64) {
 	center, radius := s.SDF3.Sphere()
-	return center, s.H.Scale(radius).Length()
+	return center, radius + s.H.Length()
 }
 
 func Elongate(v Vec3, sdf SDF3) SDF3 {
-	log.Println("Elongate untested!")
 	return SDFElongate{v, sdf}
 }
 

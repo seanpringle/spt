@@ -1,6 +1,7 @@
 package spt
 
 import (
+	"encoding/gob"
 	"image"
 	"image/color"
 	"math"
@@ -9,30 +10,39 @@ import (
 	"time"
 )
 
+func init() {
+	gob.Register(color.Alpha16{})
+}
+
 type Scene struct {
-	Seed      int64   // Optional
-	Camera    Camera  // Required
-	Stuff     []Thing // Required
-	Width     int     // in pixels
-	Height    int     // in pixels
-	Passes    int     // number of render passes
-	Samples   int     // number of jittered samples per pixel
-	Bounces   int     // max shadow ray bounces
-	Horizon   float64 // max scene distance from 0,0,0 to limit marching rays
-	Threshold float64 // distance from SDF considered close enough to be a hit
-	Sky       Color   // when not Black, makes the Sky a light source
-	Ambient   Color   // added to primary ray color to emulate ambient light
-	Raster    Raster  // pixels
+	Seed       int64       // Optional
+	Camera     Camera      // Required
+	Stuff      []Thing     // Required
+	Width      int         // in pixels
+	Height     int         // in pixels
+	Passes     int         // number of render passes
+	Samples    int         // number of jittered samples per pixel
+	Bounces    int         // max shadow ray bounces
+	Horizon    float64     // max scene distance from 0,0,0 to limit marching rays
+	Threshold  float64     // distance from SDF considered close enough to be a hit
+	Ambient    Color       // color when rays stop before reaching a light
+	Background color.Color // background null pixels; eg, color.Transparent
+	Raster     Raster      // summed samples per pixel
 }
 
 var _ image.Image = (*Scene)(nil)
+var Transparent = color.Transparent
 
 type Pixel struct {
 	Color Color
-	Rays  int
+	Rays  int32
 }
 
 type Raster []Pixel
+
+type CompressedRaster struct {
+	Buf []byte
+}
 
 type Random interface {
 	Float64() float64
@@ -99,6 +109,11 @@ func (scene *Scene) At(x, y int) color.Color {
 	c := pixel.Color.Scale(1.0 / float64(pixel.Rays))
 	// gamma correction
 	c = Color{R: math.Sqrt(c.R), G: math.Sqrt(c.G), B: math.Sqrt(c.B)}
+
+	if c == Nought && scene.Background != nil {
+		return scene.Background
+	}
+
 	return c
 }
 

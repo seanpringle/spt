@@ -2,6 +2,8 @@ package spt
 
 import (
 	"bytes"
+	"compress/flate"
+	"encoding/binary"
 	"image/png"
 	"io/ioutil"
 	"log"
@@ -52,12 +54,17 @@ func Render(out string, scene Scene, renderers []Renderer) {
 
 	scene.Raster = make(Raster, scene.Width*scene.Height)
 
+	group.Add(1)
+	go func() {
+		for pass := 1; pass <= scene.Passes || scene.Passes == 0; pass++ {
+			jobs <- struct{}{}
+		}
+		group.Done()
+	}()
+
 	for pass := 1; pass <= scene.Passes || scene.Passes == 0; pass++ {
 		log.Println("pass", pass, "of", scene.Passes)
-
-		jobs <- struct{}{}
 		scene.Merge(<-rasters)
-
 		buf := new(bytes.Buffer)
 		png.Encode(buf, &scene)
 		ioutil.WriteFile(out, buf.Bytes(), 0644)
@@ -90,13 +97,20 @@ func (r RPCRenderer) Render(scene Scene) (Raster, error) {
 
 	var (
 		slave  *rpc.Client
+		cr     CompressedRaster
 		raster Raster
 		err    error
 	)
 
 	if slave, err = rpc.Dial("tcp", r.addr); err == nil {
 		defer slave.Close()
-		err = slave.Call("RenderRPC.Render", scene, &raster)
+		err = slave.Call("RenderRPC.Render", scene, &cr)
+
+		if err == nil {
+			raster = make(Raster, scene.Width*scene.Height)
+			fr := flate.NewReader(bytes.NewReader(cr.Buf))
+			binary.Read(fr, binary.LittleEndian, raster)
+		}
 	}
 
 	return raster, err

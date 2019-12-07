@@ -43,11 +43,11 @@ type Material interface {
 type Nothing struct{}
 
 func (mat Nothing) Light() (Color, bool) {
-	return Black, false
+	return Nought, false
 }
 
 func (mat Nothing) Scatter(r Ray, thing *Thing, hit Vec3) (Ray, Color, bool) {
-	return Ray{}, Black, false
+	return Ray{}, Nought, false
 }
 
 type Emitter struct {
@@ -102,7 +102,7 @@ func (mat Metallic) Scatter(r Ray, thing *Thing, hit Vec3) (Ray, Color, bool) {
 		return Ray{hit, reflected, r.rnd}, mat.Color, true
 	}
 
-	return Ray{}, Black, false
+	return Ray{}, Nought, false
 }
 
 func Metal(c Color, roughness float64) Material {
