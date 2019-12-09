@@ -1,6 +1,9 @@
 package spt
 
 import (
+	"log"
+	"os"
+	"runtime/pprof"
 	"sync"
 	"testing"
 	"time"
@@ -59,11 +62,11 @@ func testScene() Scene {
 		),
 		Object(
 			brass,
-			Translate(V3(-5500, 0, 500),
+			Translate(V3(-5500, -1200, 500),
 				Difference(
 					Intersection(
 						Sphere(500),
-						Cube(900, 900, 900),
+						Cube(800, 800, 800),
 					),
 					Cylinder(1002, 200),
 					Rotate(V3(1, 0, 0), 90, Cylinder(1002, 200)),
@@ -73,11 +76,11 @@ func testScene() Scene {
 		),
 		Object(
 			brass,
-			Translate(V3(5500, 0, 500),
+			Translate(V3(5500, -1200, 500),
 				Union(
 					Intersection(
 						Sphere(500),
-						Cube(900, 900, 900),
+						Cube(800, 800, 800),
 					),
 					Cylinder(1250, 200),
 					Rotate(V3(1, 0, 0), 90, Cylinder(1250, 200)),
@@ -87,14 +90,26 @@ func testScene() Scene {
 		),
 		Object(
 			brass,
-			Translate(V3(6500, 3500, 500),
+			Translate(V3(6500, 3750, 500),
 				Round(100, Cube(800, 800, 800)),
 			),
 		),
 		Object(
 			brass,
-			Translate(V3(-6500, 3500, 500),
+			Translate(V3(-6500, 3750, 500),
 				Round(100, Cylinder(800, 500)),
+			),
+		),
+		Object(
+			steel,
+			Translate(V3(6000, 900, 600),
+				Repeat(V3(400, 400, 400), V3(1, 1, 1), Sphere(200)),
+			),
+		),
+		Object(
+			copper,
+			Translate(V3(-6000, 900, 750),
+				Capsule(750, 500, 250),
 			),
 		),
 	}
@@ -120,7 +135,7 @@ func testScene() Scene {
 		Height:     720,
 		Passes:     10,
 		Samples:    1,
-		Bounces:    4,
+		Bounces:    8,
 		Horizon:    100000,
 		Threshold:  0.0001,
 		Ambient:    White.Scale(0.05),
@@ -140,6 +155,20 @@ func testScene() Scene {
 }
 
 func TestLocal(t *testing.T) {
+
+	cf, cerr := os.Create("cpuprofile")
+	if cerr != nil {
+		log.Fatal(cerr)
+	}
+	pprof.StartCPUProfile(cf)
+	defer pprof.StopCPUProfile()
+
+	hf, herr := os.Create("heapprofile")
+	if herr != nil {
+		log.Fatal(herr)
+	}
+	defer pprof.WriteHeapProfile(hf)
+
 	Render("test.png", testScene(), []Renderer{NewLocalRenderer()})
 }
 
@@ -154,8 +183,23 @@ func TestRPC(t *testing.T) {
 	}()
 
 	time.Sleep(time.Second)
-	Render("test.png", testScene(), []Renderer{NewRPCRenderer("127.0.0.1:34242")})
+	Render("test.png", testScene(), []Renderer{
+		NewRPCRenderer("127.0.0.1:34242"),
+	})
 
 	close(stop)
 	group.Wait()
+}
+
+func TestRPC2(t *testing.T) {
+	scene := testScene()
+	scene.Width = 1920
+	scene.Height = 1080
+	scene.Passes = 100
+	scene.Samples = 10
+	scene.Bounces = 8
+	Render("test.png", scene, []Renderer{
+		NewRPCRenderer("slave1:34242"),
+		NewRPCRenderer("slave2:34242"),
+	})
 }

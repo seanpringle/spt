@@ -131,6 +131,11 @@ func CylinderR(h, r, ro float64) SDF3 {
 	return Round(ro, Cylinder(h-ro*2, r-ro))
 }
 
+func Capsule(h, r1, r2 float64) SDF3 {
+	return Translate(V3(0, 0, -r2),
+		Rotate(X3, -90, Revolve(0, Stadium(h, r1, r2))))
+}
+
 type SDFTorus struct {
 	V Vec2
 }
@@ -170,15 +175,15 @@ func (s SDFCone) Sphere() (Vec3, float64) {
 
 func Cone(h, r float64) SDF3 {
 	rad := math.Atan(h / r)
-	return Translate(V3(0, 0, h/2), SDFCone{math.Sin(rad), math.Cos(rad), h, r})
+	return Translate(V3(0, 0, h/2),
+		SDFCone{math.Sin(rad), math.Cos(rad), h, r})
 }
 
 func TriPrism(h, w float64) SDF3 {
-	return Translate(V3(0, 0, -h/2), Rotate(V3(1, 0, 0), -90, Extrude(w, Triangle(
-		V2(0, h),
-		V2(-w/2, 0),
-		V2(w/2, 0),
-	))))
+	return Translate(V3(0, 0, -h/2),
+		Rotate(V3(1, 0, 0), -90, Extrude(w, Triangle(
+			V2(0, h), V2(-w/2, 0), V2(w/2, 0),
+		))))
 }
 
 func Pyramid(h, w float64) SDF3 {
@@ -252,23 +257,37 @@ func Elongate(v Vec3, sdf SDF3) SDF3 {
 }
 
 type SDFRepeat struct {
-	Step Vec3
+	Count  Vec3
+	Offset Vec3
 	SDF3
 }
 
 func (s SDFRepeat) SDF() func(Vec3) float64 {
 	sdf := s.SDF3.SDF()
-	return func(pos Vec3) float64 {
-		hstep := scale3(s.Step, 0.5)
-		return sdf(sub3(mod3(add3(pos, hstep), s.Step), hstep))
+	count := s.Count
+	offset := s.Offset
+	return func(p Vec3) float64 {
+		return sdf(sub3(p, mul3(
+			clamp3(
+				round3(
+					div3(p, offset),
+				),
+				neg3(count),
+				count,
+			),
+			offset,
+		)))
 	}
 }
 
 func (s SDFRepeat) Sphere() (Vec3, float64) {
-	center, _ := s.SDF3.Sphere()
-	return center, math.MaxFloat64
+	center, radius := s.SDF3.Sphere()
+	x := (s.Offset.X + radius) * s.Count.X
+	y := (s.Offset.Y + radius) * s.Count.Y
+	z := (s.Offset.Z + radius) * s.Count.Z
+	return center, V3(x, y, z).Length()
 }
 
-func Repeat(step Vec3, sdf SDF3) SDF3 {
-	return SDFRepeat{step, sdf}
+func Repeat(offset, count Vec3, sdf SDF3) SDF3 {
+	return SDFRepeat{count, offset, sdf}
 }

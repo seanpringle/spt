@@ -35,7 +35,7 @@ var Transparent = color.Transparent
 
 type Pixel struct {
 	Color Color
-	Rays  int32
+	Rays  int32 // encoding/gob won't send a slice of pixels using a platform-dependent int size
 }
 
 type Raster []Pixel

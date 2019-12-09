@@ -133,6 +133,14 @@ func mul3(v, vB Vec3) Vec3 {
 	return v.Mul(vB)
 }
 
+func div2(v, vB Vec2) Vec2 {
+	return v.Div(vB)
+}
+
+func div3(v, vB Vec3) Vec3 {
+	return v.Div(vB)
+}
+
 func clamp(val, low, high float64) float64 {
 	return math.Min(high, math.Max(low, val))
 }
@@ -142,7 +150,11 @@ func clamp2(v, l, h Vec2) Vec2 {
 }
 
 func clamp3(v, l, h Vec3) Vec3 {
-	return Vec3{X: clamp(v.X, l.X, h.X), Y: clamp(v.Y, l.Y, h.Y), Z: clamp(v.Y, l.Z, h.Z)}
+	return Vec3{X: clamp(v.X, l.X, h.X), Y: clamp(v.Y, l.Y, h.Y), Z: clamp(v.Z, l.Z, h.Z)}
+}
+
+func round3(v Vec3) Vec3 {
+	return Vec3{X: math.Round(v.X), Y: math.Round(v.Y), Z: math.Round(v.Z)}
 }
 
 func neg2(v Vec2) Vec2 {
