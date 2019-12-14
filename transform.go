@@ -21,7 +21,7 @@ type Matrix44 struct {
 	X30, X31, X32, X33 float64
 }
 
-func (a Matrix44) MulPos(b Vec3) Vec3 {
+func (a Matrix44) MulVec3(b Vec3) Vec3 {
 	x := a.X00*b.X + a.X01*b.Y + a.X02*b.Z + a.X03
 	y := a.X10*b.X + a.X11*b.Y + a.X12*b.Z + a.X13
 	z := a.X20*b.X + a.X21*b.Y + a.X22*b.Z + a.X23
@@ -95,13 +95,13 @@ type SDFTransform struct {
 func (s SDFTransform) SDF() func(Vec3) float64 {
 	sdf := s.SDF3.SDF()
 	return func(pos Vec3) float64 {
-		return sdf(s.I.MulPos(pos))
+		return sdf(s.I.MulVec3(pos))
 	}
 }
 
 func (s SDFTransform) Sphere() (Vec3, float64) {
 	center, radius := s.SDF3.Sphere()
-	return s.M.MulPos(center), radius
+	return s.M.MulVec3(center), radius
 }
 
 func Translate(v Vec3, sdf SDF3) SDF3 {

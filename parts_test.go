@@ -7,15 +7,14 @@ import (
 func partRender(part Thing) {
 
 	scene := Scene{
-		Width:      1280,
-		Height:     720,
-		Passes:     10,
-		Samples:    1,
-		Bounces:    4,
-		Horizon:    10000,
-		Threshold:  0.0001,
-		Ambient:    White.Scale(0.05),
-		Background: Transparent,
+		Width:     1280,
+		Height:    720,
+		Passes:    10,
+		Samples:   1,
+		Bounces:   4,
+		Horizon:   10000,
+		Threshold: 0.0001,
+		Ambient:   White.Scale(0.05),
 
 		Camera: NewCamera(
 			V3(0, -2000, 2000),
@@ -36,7 +35,7 @@ func partRender(part Thing) {
 		},
 	}
 
-	Render("test.png", scene, nil)
+	RenderSave("test.png", scene, nil)
 }
 
 func TestGearWheel(t *testing.T) {

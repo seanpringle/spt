@@ -1,6 +1,7 @@
 package spt
 
 import (
+	"image/color"
 	"math"
 )
 
@@ -11,7 +12,7 @@ type Color struct {
 var (
 	White  = Color{1.0, 1.0, 1.0}
 	Black  = Color{0.001, 0.001, 0.001}
-	Nought = Color{}
+	Naught = Color{}
 	Red    = Color{1.0, 0.0, 0.0}
 	Blue   = Color{0.0, 0.0, 1.0}
 	Green  = Color{0.0, 1.0, 0.0}
@@ -31,6 +32,21 @@ func (c Color) Div(c2 Color) Color {
 
 func (c Color) Add(c2 Color) Color {
 	return Color{R: c.R + c2.R, G: c.G + c2.G, B: c.B + c2.B}
+}
+
+func (c Color) Min(c2 Color) Color {
+	return Color{math.Min(c.R, c2.R), math.Min(c.G, c2.G), math.Min(c.B, c2.B)}
+}
+
+func (c Color) Brightness() float64 {
+	return 0.299*c.R + 0.587*c.G + 0.114*c.B
+}
+
+func (c Color) Opacity(a float64) color.RGBA {
+	u := func(v float64) uint8 {
+		return uint8(v * float64(255))
+	}
+	return color.RGBA{u(c.R), u(c.G), u(c.B), u(a)}
 }
 
 func (c Color) RGBA() (uint32, uint32, uint32, uint32) {

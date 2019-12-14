@@ -1,5 +1,12 @@
 package spt
 
+func SpaceTime(size float64) Thing {
+	return Object(
+		ShadowsOnly(),
+		Translate(V3(0, 0, -5), Cube(size, size, 10)),
+	)
+}
+
 func WorkBench(size float64) Thing {
 	return Object(
 		Matt(Color{0.16, 0.12, 0.09}),

@@ -37,17 +37,17 @@ func pickVec3(rnd Random) Vec3 {
 
 type Material interface {
 	Light() (Color, bool)
-	Scatter(Ray, *Thing, Vec3) (Ray, Color, bool)
+	Scatter(Ray, *Thing, Vec3, int) (Ray, Color, bool)
 }
 
 type Nothing struct{}
 
 func (mat Nothing) Light() (Color, bool) {
-	return Nought, false
+	return Naught, false
 }
 
-func (mat Nothing) Scatter(r Ray, thing *Thing, hit Vec3) (Ray, Color, bool) {
-	return Ray{}, Nought, false
+func (mat Nothing) Scatter(r Ray, thing *Thing, hit Vec3, depth int) (Ray, Color, bool) {
+	return Ray{}, Naught, false
 }
 
 type Emitter struct {
@@ -68,7 +68,7 @@ type Diffuse struct {
 	Color
 }
 
-func (mat Diffuse) Scatter(r Ray, thing *Thing, hit Vec3) (Ray, Color, bool) {
+func (mat Diffuse) Scatter(r Ray, thing *Thing, hit Vec3, depth int) (Ray, Color, bool) {
 	normal := thing.Normal(hit)
 	redirection := hit.Add(normal).Add(pickVec3(r.rnd)).Sub(hit).Unit()
 	bounced := Ray{hit, redirection, r.rnd}
@@ -85,7 +85,7 @@ type Metallic struct {
 	Roughness float64
 }
 
-func (mat Metallic) Scatter(r Ray, thing *Thing, hit Vec3) (Ray, Color, bool) {
+func (mat Metallic) Scatter(r Ray, thing *Thing, hit Vec3, depth int) (Ray, Color, bool) {
 	normal := thing.Normal(hit)
 	reflected := r.Direction.Unit().Reflect(normal)
 
@@ -102,7 +102,7 @@ func (mat Metallic) Scatter(r Ray, thing *Thing, hit Vec3) (Ray, Color, bool) {
 		return Ray{hit, reflected, r.rnd}, mat.Color, true
 	}
 
-	return Ray{}, Nought, false
+	return Ray{}, Naught, false
 }
 
 func Metal(c Color, roughness float64) Material {
@@ -121,7 +121,7 @@ func schlick(cosine float64, refInd float64) float64 {
 	return r0 + (1.0-r0)*math.Pow(1.0-cosine, 5)
 }
 
-func (mat Dielectric) Scatter(r Ray, thing *Thing, hit Vec3) (Ray, Color, bool) {
+func (mat Dielectric) Scatter(r Ray, thing *Thing, hit Vec3, depth int) (Ray, Color, bool) {
 	normal := thing.Normal(hit)
 
 	outwardNormal := normal
@@ -147,4 +147,12 @@ func (mat Dielectric) Scatter(r Ray, thing *Thing, hit Vec3) (Ray, Color, bool) 
 
 func Glass(color Color, refInd float64) Material {
 	return Dielectric{Color: color, RefractiveIndex: refInd}
+}
+
+type Invisible struct {
+	Diffuse
+}
+
+func ShadowsOnly() Material {
+	return Invisible{Diffuse{Color: Black}}
 }

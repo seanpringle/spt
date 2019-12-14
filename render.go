@@ -4,8 +4,7 @@ import (
 	"bytes"
 	"compress/flate"
 	"encoding/binary"
-	"image/png"
-	"io/ioutil"
+	"image"
 	"log"
 	"net/rpc"
 	"sync"
@@ -16,7 +15,13 @@ type Renderer interface {
 	Render(Scene) (Raster, error)
 }
 
-func Render(out string, scene Scene, renderers []Renderer) {
+func RenderSave(out string, scene Scene, renderers []Renderer) {
+	for pass := range Render(scene, renderers) {
+		SavePNG(pass, out)
+	}
+}
+
+func Render(scene Scene, renderers []Renderer) chan image.Image {
 
 	if len(renderers) == 0 {
 		renderers = []Renderer{NewLocalRenderer()}
@@ -62,16 +67,21 @@ func Render(out string, scene Scene, renderers []Renderer) {
 		group.Done()
 	}()
 
-	for pass := 1; pass <= scene.Passes || scene.Passes == 0; pass++ {
-		log.Println("pass", pass, "of", scene.Passes)
-		scene.Merge(<-rasters)
-		buf := new(bytes.Buffer)
-		png.Encode(buf, &scene)
-		ioutil.WriteFile(out, buf.Bytes(), 0644)
-	}
+	frames := make(chan image.Image, 1)
 
-	close(jobs)
-	group.Wait()
+	go func() {
+		for pass := 1; pass <= scene.Passes || scene.Passes == 0; pass++ {
+			log.Println("pass", pass, "of", scene.Passes)
+			scene.Merge(<-rasters)
+			copy := scene
+			frames <- &copy
+		}
+		close(jobs)
+		group.Wait()
+		close(frames)
+	}()
+
+	return frames
 }
 
 type LocalRenderer struct{}

@@ -16,26 +16,56 @@ type Hit struct {
 	Normal   Vec3
 }
 
-func (r Ray) PathTrace(scene *Scene, depth int, bypass *Thing) Color {
+func (r Ray) PathTrace(scene *Scene, depth int, bypass *Thing) (Color, int, float64) {
+
+	var (
+		shadow      Ray
+		color       Color
+		scolor      Color
+		attenuation Color
+		scattered   bool
+		alpha       float64
+		bounces     int
+		invisible   bool
+	)
+
+	alpha = 1.0
 
 	if thing, hit := r.march(scene, bypass); thing != nil {
-		color := Nought
+		_, invisible = thing.Material().(Invisible)
+
+		// an invisible surface under direct light cannot catch shadows
+		if depth == 0 && invisible {
+			alpha = scene.ShadowH
+			if r.directLight(scene, hit).Brightness() > 0.0 {
+				alpha = 0.0
+			}
+		}
 
 		if depth < scene.Bounces {
 
-			if shadow, attenuation, does := thing.Material().Scatter(r, thing, hit); does {
-				color = color.Add(attenuation.Mul(shadow.PathTrace(scene, depth+1, thing)))
+			if shadow, attenuation, scattered = thing.Material().Scatter(r, thing, hit, depth); scattered {
+				scolor, bounces, _ = shadow.PathTrace(scene, depth+1, thing)
+				color = color.Add(attenuation.Mul(scolor))
+
+				// invisible surfaces don't contribute color
+				if invisible {
+					alpha = math.Max(0.0, alpha-scolor.Brightness())
+					color = attenuation
+				}
 			}
 
 			if light, is := thing.Material().Light(); is {
 				color = color.Add(light)
 			}
+
+			bounces++
 		}
 
-		return color
+		return color, bounces, alpha
 	}
 
-	return scene.Ambient
+	return scene.Ambient, 0, 1.0
 }
 
 // ray marching by sphere tracing
@@ -116,4 +146,21 @@ func (r Ray) march(scene *Scene, bypass *Thing) (*Thing, Vec3) {
 	}
 
 	return nil, Z3
+}
+
+// direct sample all lights
+func (r Ray) directLight(scene *Scene, pos Vec3) Color {
+	var color Color
+	for i := range scene.Stuff {
+		t := &scene.Stuff[i]
+		if light, is := t.Material().Light(); is {
+			center, radius := t.Sphere()
+			center = center.Add(pickVec3(r.rnd).Scale(radius))
+			lr := Ray{pos, center.Sub(pos).Unit(), r.rnd}
+			if lt, _ := lr.march(scene, nil); lt == t {
+				color = color.Add(light)
+			}
+		}
+	}
+	return color
 }

@@ -131,15 +131,14 @@ func testScene() Scene {
 	}
 
 	return Scene{
-		Width:      1280,
-		Height:     720,
-		Passes:     10,
-		Samples:    1,
-		Bounces:    8,
-		Horizon:    100000,
-		Threshold:  0.0001,
-		Ambient:    White.Scale(0.05),
-		Background: Transparent,
+		Width:     1280,
+		Height:    720,
+		Passes:    10,
+		Samples:   1,
+		Bounces:   8,
+		Horizon:   100000,
+		Threshold: 0.0001,
+		Ambient:   White.Scale(0.05),
 
 		Camera: NewCamera(
 			V3(0, -8000, 8000),
@@ -169,7 +168,7 @@ func TestLocal(t *testing.T) {
 	}
 	defer pprof.WriteHeapProfile(hf)
 
-	Render("test.png", testScene(), []Renderer{NewLocalRenderer()})
+	RenderSave("test.png", testScene(), []Renderer{NewLocalRenderer()})
 }
 
 func TestRPC(t *testing.T) {
@@ -183,7 +182,7 @@ func TestRPC(t *testing.T) {
 	}()
 
 	time.Sleep(time.Second)
-	Render("test.png", testScene(), []Renderer{
+	RenderSave("test.png", testScene(), []Renderer{
 		NewRPCRenderer("127.0.0.1:34242"),
 	})
 
@@ -198,8 +197,47 @@ func TestRPC2(t *testing.T) {
 	scene.Passes = 100
 	scene.Samples = 10
 	scene.Bounces = 8
-	Render("test.png", scene, []Renderer{
+	RenderSave("test.png", scene, []Renderer{
 		NewRPCRenderer("slave1:34242"),
 		NewRPCRenderer("slave2:34242"),
 	})
+}
+
+func TestShadow(t *testing.T) {
+	scene := Scene{
+		Width:     1280,
+		Height:    720,
+		Passes:    1000,
+		Samples:   1,
+		Bounces:   8,
+		Horizon:   100000,
+		Threshold: 0.0001,
+		Ambient:   White.Scale(0.05),
+		ShadowH:   0.8,
+		ShadowL:   0.2,
+
+		Camera: NewCamera(
+			V3(0, -8000, 8000),
+			V3(0, -1000, 500),
+			Z3,
+			40,
+			Zero3,
+			0.0,
+		),
+
+		Stuff: []Thing{
+			SpaceTime(25000),
+			//WorkBench(25000),
+			Object(
+				Light(White.Scale(4)),
+				Translate(V3(-7500, 0, 20000), Sphere(10000)),
+			),
+			Object(
+				Matt(White),
+				Translate(V3(0, 0, 1000), Sphere(1000)),
+			),
+		},
+	}
+
+	RenderSave("test.png", scene, []Renderer{NewLocalRenderer()})
 }
