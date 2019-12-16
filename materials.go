@@ -11,6 +11,7 @@ func init() {
 	gob.Register(Emitter{})
 	gob.Register(Metallic{})
 	gob.Register(Dielectric{})
+	gob.Register(Invisible{})
 }
 
 var (
