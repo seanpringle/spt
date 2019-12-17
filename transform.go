@@ -65,15 +65,16 @@ func (a Matrix44) Inverse() Matrix44 {
 	return m
 }
 
-func translate(v Vec3) Matrix44 {
+func Translation(v Vec3) Matrix44 {
 	return Matrix44{
 		1, 0, 0, v.X,
 		0, 1, 0, v.Y,
 		0, 0, 1, v.Z,
-		0, 0, 0, 1}
+		0, 0, 0, 1,
+	}
 }
 
-func rotate(v Vec3, a float64) Matrix44 {
+func Rotation(v Vec3, a float64) Matrix44 {
 	a *= math.Pi / 180.0
 	v = v.Unit()
 	s := math.Sin(a)
@@ -83,7 +84,8 @@ func rotate(v Vec3, a float64) Matrix44 {
 		m*v.X*v.X + c, m*v.X*v.Y + v.Z*s, m*v.Z*v.X - v.Y*s, 0,
 		m*v.X*v.Y - v.Z*s, m*v.Y*v.Y + c, m*v.Y*v.Z + v.X*s, 0,
 		m*v.Z*v.X + v.Y*s, m*v.Y*v.Z - v.X*s, m*v.Z*v.Z + c, 0,
-		0, 0, 0, 1}
+		0, 0, 0, 1,
+	}
 }
 
 type SDFTransform struct {
@@ -94,8 +96,15 @@ type SDFTransform struct {
 
 func (s SDFTransform) SDF() func(Vec3) float64 {
 	sdf := s.SDF3.SDF()
-	return func(pos Vec3) float64 {
-		return sdf(s.I.MulVec3(pos))
+	m := s.I
+	return func(p Vec3) float64 {
+		// micro-optimization alert! ... but this is such a hot spot that manually
+		// inlining MulVec3 gives a 9% speed up on my Ryzen for spt_test.go
+		x := m.X00*p.X + m.X01*p.Y + m.X02*p.Z + m.X03
+		y := m.X10*p.X + m.X11*p.Y + m.X12*p.Z + m.X13
+		z := m.X20*p.X + m.X21*p.Y + m.X22*p.Z + m.X23
+		return sdf(Vec3{x, y, z})
+		//return sdf(m.MulVec3(p))
 	}
 }
 
@@ -105,12 +114,12 @@ func (s SDFTransform) Sphere() (Vec3, float64) {
 }
 
 func Translate(v Vec3, sdf SDF3) SDF3 {
-	m := translate(v)
+	m := Translation(v)
 	return SDFTransform{sdf, m, m.Inverse()}
 }
 
 func Rotate(v Vec3, deg float64, sdf SDF3) SDF3 {
-	m := rotate(v, deg)
+	m := Rotation(v, deg)
 	return SDFTransform{sdf, m, m.Inverse()}
 }
 

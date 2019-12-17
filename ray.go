@@ -34,23 +34,24 @@ func (r Ray) PathTrace(scene *Scene, depth int, bypass *Thing) (Color, int, floa
 	if thing, hit := r.march(scene, bypass); thing != nil {
 		_, invisible = thing.Material().(Invisible)
 
-		// an invisible surface under direct light cannot catch shadows
 		if depth == 0 && invisible {
 			alpha = scene.ShadowH
 			if r.directLight(scene, hit).Brightness() > 0.0 {
+				// an invisible material under direct light for a primary ray cannot catch shadows
 				alpha = 0.0
 			}
 		}
 
-		if depth < scene.Bounces {
+		if alpha > 0.0 && depth < scene.Bounces {
 
 			if shadow, attenuation, scattered = thing.Material().Scatter(r, thing, hit, depth); scattered {
 				scolor, bounces, _ = shadow.PathTrace(scene, depth+1, thing)
 				color = color.Add(attenuation.Mul(scolor))
 
-				// invisible surfaces don't contribute color
+				// invisible surfaces use nested shadow ray colors only to weight their own shadow alpha,
+				// giving a soft-shadow prenumbra effect similar to real shadows on normal materials
 				if invisible {
-					alpha = math.Max(0.0, alpha-scolor.Brightness())
+					alpha = math.Min(scene.ShadowH, math.Max(0.0, (alpha-(scolor.Brightness()/scene.ShadowD))))
 					color = attenuation
 				}
 			}
@@ -155,7 +156,7 @@ func (r Ray) directLight(scene *Scene, pos Vec3) Color {
 		t := &scene.Stuff[i]
 		if light, is := t.Material().Light(); is {
 			center, radius := t.Sphere()
-			center = center.Add(pickVec3(r.rnd).Scale(radius))
+			center = center.Add(pickVec3(r.rnd).Scale(radius * scene.ShadowR))
 			lr := Ray{pos, center.Sub(pos).Unit(), r.rnd}
 			if lt, _ := lr.march(scene, nil); lt == t {
 				color = color.Add(light)

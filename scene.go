@@ -31,6 +31,8 @@ type Scene struct {
 	Ambient   Color   // color when rays stop before reaching a light
 	ShadowH   float64 // shadow alpha upper limit on invisible surfaces (dark center)
 	ShadowL   float64 // shadow alpha lower limit on invisible surfaces (prenumbra cut-off)
+	ShadowD   float64 // shadow darkness (light brightness multipler)
+	ShadowR   float64 // shadow sharpness (light radius multipler)
 	Raster    Raster  // summed samples per pixel
 }
 
@@ -107,7 +109,8 @@ func (scene Scene) Render() Raster {
 }
 
 func (scene *Scene) ColorModel() color.Model {
-	return color.RGBAModel
+	// during tracing alpha is stored separately from rgb without pre-multiplication
+	return color.NRGBAModel
 }
 
 func (scene *Scene) At(x, y int) color.Color {
@@ -132,7 +135,7 @@ func (scene *Scene) At(x, y int) color.Color {
 		u := func(v float64) uint8 {
 			return uint8(255.0 * v)
 		}
-		return color.RGBA{u(c.R), u(c.G), u(c.B), u(alpha)}
+		return color.NRGBA{u(c.R), u(c.G), u(c.B), u(alpha)}
 	}
 
 	return c

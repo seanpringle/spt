@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/seanpringle/spt"
 	"net/http"
 	_ "net/http/pprof"
 	"os"
 	"os/signal"
-	"runtime"
 	"syscall"
 )
 
