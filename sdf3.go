@@ -25,13 +25,12 @@ type SDF3 interface {
 	Sphere() (Vec3, float64)
 }
 
-func SDF3Normal(sdf SDF3, p Vec3) Vec3 {
-	distance := sdf.SDF()
+func SDF3Normal(sdf func(Vec3) float64, p Vec3) Vec3 {
 	step := 0.000001
 	gradient := Vec3{
-		distance(Vec3{p.X + step, p.Y, p.Z}) - distance(Vec3{p.X - step, p.Y, p.Z}),
-		distance(Vec3{p.X, p.Y + step, p.Z}) - distance(Vec3{p.X, p.Y - step, p.Z}),
-		distance(Vec3{p.X, p.Y, p.Z + step}) - distance(Vec3{p.X, p.Y, p.Z - step}),
+		sdf(Vec3{p.X + step, p.Y, p.Z}) - sdf(Vec3{p.X - step, p.Y, p.Z}),
+		sdf(Vec3{p.X, p.Y + step, p.Z}) - sdf(Vec3{p.X, p.Y - step, p.Z}),
+		sdf(Vec3{p.X, p.Y, p.Z + step}) - sdf(Vec3{p.X, p.Y, p.Z - step}),
 	}
 	return gradient.Unit()
 }

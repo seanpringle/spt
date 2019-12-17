@@ -17,7 +17,7 @@ func (o *Thing) Material() Material {
 }
 
 func (o *Thing) Normal(pos Vec3) Vec3 {
-	return SDF3Normal(o.SDF3, pos)
+	return SDF3Normal(o.sdf, pos)
 }
 
 func (o *Thing) Distance(pos Vec3) float64 {

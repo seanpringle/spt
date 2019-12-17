@@ -157,7 +157,7 @@ func Distort(factor Vec3, sdf SDF3) SDF3 {
 	return SDFDistort{sdf, factor}
 }
 
-func SDF3BoundingSphere(items []SDF3) (Vec3, float64) {
+func itemsBoundingSphere(items []SDF3) (Vec3, float64) {
 	centers := Zero3
 	mradius := 0.0
 	points := []Vec3{}
@@ -224,7 +224,7 @@ func (s SDFUnion) SDF() func(Vec3) float64 {
 }
 
 func (s SDFUnion) Sphere() (Vec3, float64) {
-	center, radius := SDF3BoundingSphere(s.Items)
+	center, radius := itemsBoundingSphere(s.Items)
 	return center, radius
 }
 
@@ -265,7 +265,7 @@ func (s SDFDifference) SDF() func(Vec3) float64 {
 }
 
 func (s SDFDifference) Sphere() (Vec3, float64) {
-	center, radius := SDF3BoundingSphere(s.Items)
+	center, radius := itemsBoundingSphere(s.Items)
 	return center, radius
 }
 
@@ -304,7 +304,7 @@ func (s SDFIntersection) SDF() func(Vec3) float64 {
 }
 
 func (s SDFIntersection) Sphere() (Vec3, float64) {
-	center, radius := SDF3BoundingSphere(s.Items)
+	center, radius := itemsBoundingSphere(s.Items)
 	return center, radius
 }
 
