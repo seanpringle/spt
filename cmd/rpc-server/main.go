@@ -14,7 +14,7 @@ import (
 func main() {
 
 	port := flag.Int("p", 34242, "TCP port")
-	prof := flag.Bool("prof", 0, "pprof port")
+	prof := flag.Int("prof", 0, "pprof port")
 	flag.Parse()
 
 	if *prof > 0 {
