@@ -1,0 +1,9 @@
+stages:
+  - build
+
+build_test:
+  image: golang:latest
+  stage: build
+  script:
+    - cd ${CI_PROJECT_DIR}
+    - go test -run Local
