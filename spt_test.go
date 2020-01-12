@@ -194,7 +194,7 @@ func TestRPC2(t *testing.T) {
 	scene := testScene()
 	scene.Width = 1920
 	scene.Height = 1080
-	scene.Passes = 100
+	scene.Passes = 0
 	scene.Samples = 10
 	scene.Bounces = 8
 	RenderSave("test.png", scene, []Renderer{
@@ -213,6 +213,8 @@ func TestShadow(t *testing.T) {
 		Horizon:   100000,
 		Threshold: 0.0001,
 		Ambient:   White.Scale(0.05),
+		ShadowD:   2.0,
+		ShadowR:   0.5,
 		ShadowH:   0.8,
 		ShadowL:   0.2,
 

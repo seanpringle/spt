@@ -118,9 +118,33 @@ func Translate(v Vec3, sdf SDF3) SDF3 {
 	return SDFTransform{sdf, m, m.Inverse()}
 }
 
+func TranslateX(n float64, sdf SDF3) SDF3 {
+	return Translate(V3(n, 0, 0), sdf)
+}
+
+func TranslateY(n float64, sdf SDF3) SDF3 {
+	return Translate(V3(0, n, 0), sdf)
+}
+
+func TranslateZ(n float64, sdf SDF3) SDF3 {
+	return Translate(V3(0, 0, n), sdf)
+}
+
 func Rotate(v Vec3, deg float64, sdf SDF3) SDF3 {
 	m := Rotation(v, deg)
 	return SDFTransform{sdf, m, m.Inverse()}
+}
+
+func RotateX(deg float64, sdf SDF3) SDF3 {
+	return Rotate(V3(1, 0, 0), deg, sdf)
+}
+
+func RotateY(deg float64, sdf SDF3) SDF3 {
+	return Rotate(V3(0, 1, 0), deg, sdf)
+}
+
+func RotateZ(deg float64, sdf SDF3) SDF3 {
+	return Rotate(V3(0, 0, 1), deg, sdf)
 }
 
 type SDFScale struct {
