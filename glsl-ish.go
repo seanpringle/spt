@@ -64,6 +64,10 @@ func abs3(v Vec3) Vec3 {
 	return v.Abs()
 }
 
+func pow(a, n float64) float64 {
+	return math.Pow(a, n)
+}
+
 func max(a, b float64) float64 {
 	return math.Max(a, b)
 }

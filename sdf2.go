@@ -13,7 +13,7 @@ func init() {
 	gob.Register(SDFTriangle{})
 	gob.Register(SDFPolygon{})
 	gob.Register(SDFStadium{})
-	//	gob.Register(SDFTrapezoid{})
+	gob.Register(SDFParabola{})
 }
 
 type SDF2 interface {
@@ -150,31 +150,50 @@ func Stadium(h, r1, r2 float64) SDF2 {
 	return SDFStadium{h, r1, r2}
 }
 
-/*
-type SDFTrapezoid struct {
-	A, B   Vec2
-	RA, RB float64
+type SDFParabola struct {
+	M, H float64
 }
 
-func (s SDFTrapezoid) SDF() func(Vec2) float64 {
-	return func(p Vec2) float64 {
-		rba := s.RB - s.RA
-		baba := dot2(sub2(s.B, s.A), sub2(s.B, s.A))
-		papa := dot2(sub2(p, s.A), sub2(p, s.A))
-		paba := dot2(sub2(p, s.A), sub2(s.B, s.A)) / baba
-		x := sqrt(papa - paba*paba*baba)
-		cax := max(0.0, x-tif(paba < 0.5, s.RA, s.RB))
-		cay := abs(paba-0.5) - 0.5
-		k := rba*rba + baba
-		f := clamp((rba*(x-s.RA)+paba*baba)/k, 0.0, 1.0)
-		cbx := x - s.RA - f*rba
-		cby := paba - f
-		ss := tif(cbx < 0.0 && cay < 0.0, -1.0, 1.0)
-		return ss * sqrt(min(cax*cax+cay*cay*baba, cbx*cbx+cby*cby*baba))
+func (s SDFParabola) SDF() func(Vec2) float64 {
+	return func(pos Vec2) float64 {
+
+		pos.X = abs(pos.X)
+		m := s.M
+
+		// capped at height
+		if pos.Y > s.H {
+			l := sqrt(s.H / m)
+			a := Vec2{-l, s.H}
+			b := Vec2{l, s.H}
+			pa := sub2(pos, a)
+			ba := sub2(b, a)
+			h := clamp(dot2(pa, ba)/dot2(ba, ba), 0.0, 1.0)
+			return len2(sub2(pa, scale2(ba, h)))
+		}
+
+		p := (2.0*m*pos.Y - 1.0) / (6.0 * m * m)
+		q := abs(pos.X) / (4.0 * m * m)
+		h := q*q - p*p*p
+		r := sqrt(abs(h))
+		var x float64
+		if h > 0 {
+			x = pow(q+r, 1.0/3.0) - pow(abs(q-r), 1.0/3.0)*sign(r-q)
+		} else {
+			x = 2.0 * math.Cos(math.Atan2(r, q)/3.0) * sqrt(p)
+		}
+		y := m * x * x
+		return len2(sub2(pos, Vec2{x, y})) * sign(pos.X-x)
 	}
 }
 
-func Trapezoid(a, b Vec2, la, lb float64) SDF2 {
-	return SDFTrapezoid{a, b, la, lb}
+func (s SDFParabola) Circle() (Vec2, float64) {
+	x := sqrt(s.H / s.M)
+	r := sqrt(x*x + s.H*s.H)
+	return Zero2, r
 }
-*/
+
+// width on x-axis at height on y-axis
+func Parabola(w, h float64) SDF2 {
+	w = w / 2
+	return SDFParabola{h / (w * w), h}
+}

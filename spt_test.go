@@ -9,6 +9,11 @@ import (
 	"time"
 )
 
+func parabolicBowl(radius, height, baseThickness float64) SDF3 {
+	shape := Revolve(0, Parabola(radius*2, height))
+	return RotateX(270, Difference(shape, TranslateY(baseThickness, shape)))
+}
+
 func testScene() Scene {
 
 	steel := Metal(Color{0.4, 0.4, 0.4}, 0.95)
@@ -112,17 +117,27 @@ func testScene() Scene {
 				Capsule(750, 500, 250),
 			),
 		),
+		Object(
+			Glass(Color{1.0, 0.5, 0.5}, 1.5),
+			Union(
+				TranslateZ(100, CylinderR(200, 500, 10)),
+				parabolicBowl(1000, 2000, 200),
+			),
+		),
 	}
 
-	stuff = append(stuff, things(steel, V3(-2500, -2750, 0))...)
-	stuff = append(stuff, things(copper, V3(2500, -2750, 0))...)
-	stuff = append(stuff, things(stainless, V3(-2500, 2250, 0))...)
-	stuff = append(stuff, things(gold, V3(2500, 2250, 0))...)
+	stuff = append(stuff, things(steel, V3(-2750, -2750, 0))...)
+	stuff = append(stuff, things(copper, V3(2750, -2750, 0))...)
+	stuff = append(stuff, things(stainless, V3(-3000, 2250, 0))...)
+	stuff = append(stuff, things(gold, V3(3000, 2250, 0))...)
 
 	for i := 0; i < 9; i++ {
 		color := Color{0.5, 0.5, 1.0}
 		if i%2 == 0 {
 			color = Color{0.5, 1.0, 0.5}
+		}
+		if i >= 3 && i < 6 {
+			continue
 		}
 		stuff = append(stuff, Object(
 			Glass(color, 1.5),
@@ -131,11 +146,11 @@ func testScene() Scene {
 	}
 
 	return Scene{
-		Width:     1280,
-		Height:    720,
-		Passes:    10,
+		Width:     1920,
+		Height:    1080,
+		Passes:    0,
 		Samples:   1,
-		Bounces:   8,
+		Bounces:   16,
 		Horizon:   100000,
 		Threshold: 0.0001,
 		Ambient:   White.Scale(0.05),
@@ -194,9 +209,6 @@ func TestRPC2(t *testing.T) {
 	scene := testScene()
 	scene.Width = 1920
 	scene.Height = 1080
-	scene.Passes = 0
-	scene.Samples = 10
-	scene.Bounces = 8
 	RenderSave("test.png", scene, []Renderer{
 		NewRPCRenderer("slave1:34242"),
 		NewRPCRenderer("slave2:34242"),
@@ -237,6 +249,47 @@ func TestShadow(t *testing.T) {
 			Object(
 				Matt(White),
 				Translate(V3(0, 0, 1000), Sphere(1000)),
+			),
+		},
+	}
+
+	RenderSave("test.png", scene, []Renderer{NewLocalRenderer()})
+}
+
+func TestSDF(t *testing.T) {
+
+	scene := Scene{
+		Width:     1280,
+		Height:    720,
+		Passes:    10,
+		Samples:   1,
+		Bounces:   8,
+		Horizon:   100000,
+		Threshold: 0.0001,
+		Ambient:   White.Scale(0.05),
+
+		Camera: NewCamera(
+			V3(0, -8000, 8000),
+			V3(0, 0, 500),
+			Z3,
+			40,
+			Zero3,
+			0.0,
+		),
+
+		Stuff: []Thing{
+			WorkBench(50000),
+			Object(
+				Light(White.Scale(4)),
+				Translate(V3(-7500, 0, 20000), Sphere(10000)),
+			),
+			Object(
+				Copper,
+				TranslateX(-3000, parabolicBowl(759, 1000, 200)),
+			),
+			Object(
+				Steel,
+				TranslateX(3000, parabolicBowl(1000, 1000, 200)),
 			),
 		},
 	}
