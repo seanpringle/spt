@@ -290,3 +290,24 @@ func (s SDFRepeat) Sphere() (Vec3, float64) {
 func Repeat(offset, count Vec3, sdf SDF3) SDF3 {
 	return SDFRepeat{count, offset, sdf}
 }
+
+type SDFEllipsoid struct {
+	R Vec3
+}
+
+func (s SDFEllipsoid) SDF() func(Vec3) float64 {
+	return func(p Vec3) float64 {
+		r := s.R
+		k0 := len3(div3(p, r))
+		k1 := len3(div3(p, mul3(r, r)))
+		return k0 * (k0 - 1.0) / k1
+	}
+}
+
+func (s SDFEllipsoid) Sphere() (Vec3, float64) {
+	return Zero3, max(s.R.X, max(s.R.Y, s.R.Z)) * 2
+}
+
+func Ellipsoid(x, y, z float64) SDF3 {
+	return SDFEllipsoid{Vec3{x, y, z}}
+}

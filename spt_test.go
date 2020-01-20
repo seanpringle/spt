@@ -146,9 +146,9 @@ func testScene() Scene {
 	}
 
 	return Scene{
-		Width:     1920,
-		Height:    1080,
-		Passes:    0,
+		Width:     1280,
+		Height:    720,
+		Passes:    10,
 		Samples:   1,
 		Bounces:   16,
 		Horizon:   100000,
@@ -209,6 +209,7 @@ func TestRPC2(t *testing.T) {
 	scene := testScene()
 	scene.Width = 1920
 	scene.Height = 1080
+	scene.Passes = 0
 	RenderSave("test.png", scene, []Renderer{
 		NewRPCRenderer("slave1:34242"),
 		NewRPCRenderer("slave2:34242"),
@@ -285,11 +286,11 @@ func TestSDF(t *testing.T) {
 			),
 			Object(
 				Copper,
-				TranslateX(-3000, parabolicBowl(759, 1000, 200)),
+				TranslateX(-1000, TranslateZ(1000, Ellipsoid(500, 500, 1000))),
 			),
 			Object(
-				Steel,
-				TranslateX(3000, parabolicBowl(1000, 1000, 200)),
+				Copper,
+				TranslateX(1000, TranslateZ(1000, Sphere(1000))),
 			),
 		},
 	}
