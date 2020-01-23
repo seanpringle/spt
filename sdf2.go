@@ -14,6 +14,7 @@ func init() {
 	gob.Register(SDFPolygon{})
 	gob.Register(SDFStadium{})
 	gob.Register(SDFParabola{})
+	gob.Register(SDFHexagram{})
 }
 
 type SDF2 interface {
