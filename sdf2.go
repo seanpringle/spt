@@ -218,7 +218,7 @@ func (s SDFHexagram) SDF() func(Vec2) float64 {
 }
 
 func (s SDFHexagram) Circle() (Vec2, float64) {
-	return Zero2, s.R
+	return Zero2, s.R * 2
 }
 
 func Hexagram(r float64) SDF2 {
