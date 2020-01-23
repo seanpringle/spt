@@ -197,3 +197,29 @@ func Parabola(w, h float64) SDF2 {
 	w = w / 2
 	return SDFParabola{h / (w * w), h}
 }
+
+type SDFHexagram struct {
+	R float64
+}
+
+func (s SDFHexagram) SDF() func(Vec2) float64 {
+	kx := -0.5
+	ky := 0.8660254038
+	kz := 0.5773502692
+	kw := 1.7320508076
+	return func(p Vec2) float64 {
+		p = abs2(p)
+		p = sub2(p, scale2(scale2(V2(kx, ky), min(dot2(V2(kx, ky), p), 0.0)), 2.0))
+		p = sub2(p, scale2(scale2(V2(ky, kx), min(dot2(V2(ky, kx), p), 0.0)), 2.0))
+		p = sub2(p, V2(clamp(p.X, s.R*kz, s.R*kw), s.R))
+		return len2(p) * sign(p.Y)
+	}
+}
+
+func (s SDFHexagram) Circle() (Vec2, float64) {
+	return Zero2, s.R
+}
+
+func Hexagram(r float64) SDF2 {
+	return SDFHexagram{r}
+}

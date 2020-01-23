@@ -18,6 +18,7 @@ func init() {
 	gob.Register(SDFHollow{})
 	gob.Register(SDFElongate{})
 	gob.Register(SDFRepeat{})
+	gob.Register(SDFEllipsoid{})
 }
 
 type SDF3 interface {
@@ -131,8 +132,7 @@ func CylinderR(h, r, ro float64) SDF3 {
 }
 
 func Capsule(h, r1, r2 float64) SDF3 {
-	return Translate(V3(0, 0, -r2),
-		Rotate(X3, -90, Revolve(0, Stadium(h, r1, r2))))
+	return TranslateZ(-r2, RotateX(-90, Revolve(0, Stadium(h, r1, r2))))
 }
 
 type SDFTorus struct {
@@ -174,22 +174,18 @@ func (s SDFCone) Sphere() (Vec3, float64) {
 
 func Cone(h, r float64) SDF3 {
 	rad := math.Atan(h / r)
-	return Translate(V3(0, 0, h/2),
-		SDFCone{math.Sin(rad), math.Cos(rad), h, r})
+	return TranslateZ(h/2, SDFCone{math.Sin(rad), math.Cos(rad), h, r})
 }
 
 func TriPrism(h, w float64) SDF3 {
-	return Translate(V3(0, 0, -h/2),
-		Rotate(V3(1, 0, 0), -90, Extrude(w, Triangle(
-			V2(0, h), V2(-w/2, 0), V2(w/2, 0),
-		))))
+	return TranslateZ(-h/2, RotateX(-90, Extrude(w, Triangle(
+		V2(0, h), V2(-w/2, 0), V2(w/2, 0),
+	))))
 }
 
 func Pyramid(h, w float64) SDF3 {
 	prism := TriPrism(h, w)
-	return Intersection(prism,
-		Rotate(V3(0, 0, 1), 90, prism),
-	)
+	return Intersection(prism, RotateZ(90, prism))
 }
 
 type SDFRounded struct {
@@ -251,8 +247,8 @@ func (s SDFElongate) Sphere() (Vec3, float64) {
 	return center, radius + s.H.Length()
 }
 
-func Elongate(v Vec3, sdf SDF3) SDF3 {
-	return SDFElongate{v, sdf}
+func Elongate(x, y, z float64, sdf SDF3) SDF3 {
+	return SDFElongate{Vec3{x, y, z}, sdf}
 }
 
 type SDFRepeat struct {
@@ -287,8 +283,8 @@ func (s SDFRepeat) Sphere() (Vec3, float64) {
 	return center, V3(x, y, z).Length()
 }
 
-func Repeat(offset, count Vec3, sdf SDF3) SDF3 {
-	return SDFRepeat{count, offset, sdf}
+func Repeat(cx, cy, cz, ox, oy, oz float64, sdf SDF3) SDF3 {
+	return SDFRepeat{Vec3{cx, cy, cz}, Vec3{ox, oy, oz}, sdf}
 }
 
 type SDFEllipsoid struct {

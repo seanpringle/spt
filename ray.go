@@ -46,11 +46,18 @@ func (r Ray) PathTrace(scene *Scene, depth int, bypass *Thing) (Color, int, floa
 
 			if shadow, attenuation, scattered = thing.Material().Scatter(r, thing, hit, depth); scattered {
 				scolor, bounces, _ = shadow.PathTrace(scene, depth+1, thing)
+
+				// invisible surfaces pass through ambient lighting for non-primary ray hits
+				if depth > 0 && invisible {
+					attenuation = White
+					scolor = scene.Ambient
+				}
+
 				color = color.Add(attenuation.Mul(scolor))
 
 				// invisible surfaces use nested shadow ray colors only to weight their own shadow alpha,
 				// giving a soft-shadow prenumbra effect similar to real shadows on normal materials
-				if invisible {
+				if depth == 0 && invisible {
 					alpha = math.Min(scene.ShadowH, math.Max(0.0, (alpha-(scolor.Brightness()/scene.ShadowD))))
 					color = attenuation
 				}
