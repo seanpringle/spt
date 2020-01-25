@@ -73,7 +73,11 @@ func (r Ray) PathTrace(scene *Scene, depth int, bypass *Thing) (Color, int, floa
 		return color, bounces, alpha
 	}
 
-	return scene.Ambient, 0, 1.0
+	if depth > 0 {
+		return scene.Ambient, 0, 1.0
+	}
+
+	return Naught, 0, 0.0
 }
 
 // ray marching by sphere tracing
