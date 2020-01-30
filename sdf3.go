@@ -248,7 +248,7 @@ func (s SDFElongate) Sphere() (Vec3, float64) {
 }
 
 func Elongate(x, y, z float64, sdf SDF3) SDF3 {
-	return SDFElongate{Vec3{x, y, z}, sdf}
+	return SDFElongate{Vec3{x / 2, y / 2, z / 2}, sdf}
 }
 
 type SDFRepeat struct {
