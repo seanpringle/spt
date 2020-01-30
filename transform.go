@@ -9,6 +9,7 @@ func init() {
 	gob.Register(SDFTransform{})
 	gob.Register(SDFScale{})
 	gob.Register(SDFDistort{})
+	gob.Register(SDFMirror{})
 	gob.Register(SDFUnion{})
 	gob.Register(SDFDifference{})
 	gob.Register(SDFIntersection{})
@@ -188,6 +189,39 @@ func (s SDFDistort) Sphere() (Vec3, float64) {
 
 func Distort(factor Vec3, sdf SDF3) SDF3 {
 	return SDFDistort{sdf, factor}
+}
+
+type SDFMirror struct {
+	SDF3
+	Mul Vec3
+}
+
+func (s SDFMirror) SDF() func(Vec3) float64 {
+	sdf := s.SDF3.SDF()
+	return func(pos Vec3) float64 {
+		return sdf(pos.Mul(s.Mul))
+	}
+}
+
+func (s SDFMirror) Sphere() (Vec3, float64) {
+	center, radius := s.SDF3.Sphere()
+	return center.Mul(s.Mul), radius
+}
+
+func Mirror(mul Vec3, sdf SDF3) SDF3 {
+	return SDFMirror{sdf, mul}
+}
+
+func MirrorX(sdf SDF3) SDF3 {
+	return Mirror(V3(-1, 1, 1), sdf)
+}
+
+func MirrorY(sdf SDF3) SDF3 {
+	return Mirror(V3(1, -1, 1), sdf)
+}
+
+func MirrorZ(sdf SDF3) SDF3 {
+	return Mirror(V3(1, 1, -1), sdf)
 }
 
 func itemsBoundingSphere(items []SDF3) (Vec3, float64) {

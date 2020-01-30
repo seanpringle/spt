@@ -286,11 +286,7 @@ func TestSDF(t *testing.T) {
 			),
 			Object(
 				Copper,
-				TranslateX(-1000, TranslateZ(1000, Ellipsoid(500, 500, 1000))),
-			),
-			Object(
-				Copper,
-				TranslateX(1000, TranslateZ(1000, Sphere(1000))),
+				TranslateZ(500, Elongate(500, 0, 0, Cylinder(1000, 500))),
 			),
 		},
 	}
